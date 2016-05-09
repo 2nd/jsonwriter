@@ -3,7 +3,7 @@ import stringbuilder, json
 const defaultCapacity = 512
 
 type
-  JsonWriter = ref object
+  JsonWriter* = ref object
     depth: int
     first: bool
     array: bool
