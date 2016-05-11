@@ -47,3 +47,14 @@ suite "jsonwriter":
     w = newJsonWriter()
     w.rootObj(proc() = w.write("values", @[1, 1, 2, 3, 5]))
     check($w == """{"values":[1,1,2,3,5]}""")
+
+  test "raw":
+    var w = newJsonWriter()
+    w.rootObj(proc() =
+      w.key("values")
+      w.raw('[')
+      w.raw("],")
+      check($w == """{"values":[],""")
+      w.truncate(1)
+      check($w == """{"values":[]""")
+    )

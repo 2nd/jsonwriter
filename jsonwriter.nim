@@ -30,6 +30,8 @@ proc separator*(w: JsonWriter) {.inline.} =
   else:
     w.first = false
 
+proc truncate*(w: JsonWriter, length: int) {.inline.} = w.writer.truncate(length)
+
 # writes a standalone and escaped string
 proc write*(w: JsonWriter, value: string) {.inline.} =
   if (w.array): w.separator()
@@ -41,6 +43,12 @@ proc key*(w: JsonWriter, k: string) {.inline.} =
   w.separator()
   w.write(k)
   w.writer.append(':')
+
+# directly write the char as-is
+proc raw*(w: JsonWriter, c: char) {.inline.} = w.writer.append(c)
+
+# directly write the string as-is
+proc raw*(w: JsonWriter, s: string) {.inline.} = w.writer.append(s)
 
 # Writes a key: value wher value is a number
 proc write*[T: Ordinal|uint|uint64|float|float64|float32](w: JsonWriter, k: string, value: T) {.inline.} =
@@ -95,10 +103,8 @@ proc array*(w: JsonWriter, k: string, fn: proc()) =
   w.first = false
   w.writer.append(']')
 
-
 # Creates a new string, see destroy for an efficient alternative
 proc `$`*(w: JsonWriter): string {.inline.} = $w.writer
-
 
 # Efficiently converts the writer into a string.
 # using any jsonwriter method after a call to destry (including additional
