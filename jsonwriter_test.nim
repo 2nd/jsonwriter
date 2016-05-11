@@ -34,3 +34,16 @@ suite "jsonwriter":
       )
     )
     check($w == """{"over":{"9000":true,"levels":[1,"two"]}}""")
+
+  test "arrays":
+    var w = newJsonWriter()
+    w.rootObj(proc() = w.write("atreides", newSeq[string](0)))
+    check($w == """{"atreides":[]}""")
+
+    w = newJsonWriter()
+    w.rootObj(proc() = w.write("atreides", @["paul", "jessica", "le\"to"]))
+    check($w == """{"atreides":["paul","jessica","le\"to"]}""")
+
+    w = newJsonWriter()
+    w.rootObj(proc() = w.write("values", @[1, 1, 2, 3, 5]))
+    check($w == """{"values":[1,1,2,3,5]}""")

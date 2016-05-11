@@ -3,7 +3,7 @@ import stringbuilder, json
 const defaultCapacity = 512
 
 type
-  JsonWriter* = ref object
+  JsonWriter = ref object
     depth: int
     first: bool
     array: bool
@@ -24,46 +24,54 @@ proc rootArray*(w: JsonWriter, fn: proc()) =
   fn()
   w.writer.append(']')
 
-proc separator*(w: JsonWriter) =
+proc separator*(w: JsonWriter) {.inline.} =
   if not w.first:
     w.writer.append(',')
   else:
     w.first = false
 
-proc string*(w: JsonWriter, value: string) {.inline.} =
+# writes a standalone and escaped string
+proc write*(w: JsonWriter, value: string) {.inline.} =
+  if (w.array): w.separator()
   w.writer.append(escapeJson(value))
 
 # Writes a key. The key is placed within quotes and ends
 # with a colon
 proc key*(w: JsonWriter, k: string) {.inline.} =
   w.separator()
-  w.string(k)
+  w.write(k)
   w.writer.append(':')
 
-# Writes a key: value
+# Writes a key: value wher value is a number
 proc write*[T: Ordinal|uint|uint64|float|float64|float32](w: JsonWriter, k: string, value: T) {.inline.} =
   w.key(k)
   w.writer.append($value)
 
-# Writes a key: value
+# Writes a key: value where value is char
 proc write*(w: JsonWriter, k: string, value: char) {.inline.} =
   w.key(k)
-  w.string($value)
+  w.write($value)
 
-# Writes a key: value
+# Writes a key: value where value is a string
 proc write*(w: JsonWriter, k: string, value: string) {.inline.} =
   w.key(k)
-  w.string(value)
+  w.write(value)
+
+# Writes a key: value where value is a string array
+proc write*[T](w: JsonWriter, k: string, values: openArray[T]) {.inline.} =
+  w.key(k)
+  w.writer.append('[')
+  if values.len == 0: w.writer.append(']'); return
+  w.write(values[0])
+  for i in 1..<values.len:
+    w.writer.append(',')
+    w.write(values[i])
+  w.writer.append(']')
 
 # Writes a value
 proc write*[T: Ordinal|uint|uint64|float|float64|float32](w: JsonWriter, value: T) {.inline.} =
   if (w.array): w.separator()
   w.writer.append($value)
-
-# Writes a value
-proc write*(w: JsonWriter, value: string) {.inline.} =
-  if (w.array): w.separator()
-  w.string(value)
 
 # Writes a value
 proc write*(w: JsonWriter, value: char) {.inline.} =
